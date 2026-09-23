@@ -1,1 +1,14 @@
-
+# This file is a placeholder to keep the results/ directory in the repository.
+#
+# After running the benchmark, the following files will be generated here:
+#
+#     results.csv           - raw benchmark results (9 scenarios x 12 methods x 10 seeds)
+#     ablation.csv          - ablation study results (A1-A5)
+#     sensitivity_S1.csv    - latent-dimension sensitivity results for S1
+#     sensitivity_S2.csv    - latent-dimension sensitivity results for S2
+#     wilcoxon.csv          - Wilcoxon test results
+#     friedman.csv          - Friedman test results
+#     ranking.csv           - mean AIC ranking across scenarios
+#
+#     figures/              - all publication figures (PNG)
+#     tables/               - LaTeX tables
