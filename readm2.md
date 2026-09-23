@@ -336,62 +336,37 @@ The latent dimension \(k\) is selected using PCA with a target threshold of **90
 
 LS-Vine optimizes the following objective:
 
-\[
-L =
-L_{\mathrm{rec}}
-+
-\lambda(t)L_v
-+
-\gamma L_{\mathrm{reg}}.
-\]
+$$
+L = L_{\mathrm{rec}} + \lambda(t) L_v + \gamma L_{\mathrm{reg}}.
+$$
 
 The reconstruction loss is:
 
-\[
-L_{\mathrm{rec}}
-=
-L_{\mathrm{MSE}}
-+
-\alpha L_{\mathrm{soft}},
-\]
+$$
+L_{\mathrm{rec}} = L_{\mathrm{MSE}} + \alpha L_{\mathrm{soft}},
+$$
 
 where \(L_{\mathrm{soft}}\) is a differentiable soft Kendall's tau loss.
 
 The dependence-distribution matching term is:
 
-\[
-L_v =
-\text{Wasserstein}_{1D}
-\left(
-|\tau_X|,
-|\tau_Z|
-\right),
-\]
+$$
+L_v = \text{Wasserstein}_{1D}\left(|\tau_X|, |\tau_Z|\right),
+$$
 
 where the empirical distributions of pairwise absolute Kendall's tau values are compared between the observed space and the latent space.
 
 The regularization term is:
 
-\[
-L_{\mathrm{reg}}
-=
-\|\bar Z\|^2
-+
-\lambda_{\mathrm{var}}
-\sum_j(\log s_j)^2.
-\]
+$$
+L_{\mathrm{reg}} = \|\bar Z\|^2 + \lambda_{\mathrm{var}} \sum_j (\log s_j)^2.
+$$
 
 The dependence-loss coefficient uses exponential warmup:
 
-\[
-\lambda(t)
-=
-\lambda_{\max}
-\left(
-1-\exp\left(-\frac{t}{\tau_w}\right)
-\right).
-\]
-
+$$
+\lambda(t) = \lambda_{\max} \left( 1 - \exp\left(-\frac{t}{\tau_w}\right) \right).
+$$
 ### 7.5 Vine likelihood and early stopping
 
 The actual vine log-likelihood is evaluated periodically on the validation set for early stopping.
