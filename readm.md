@@ -240,25 +240,30 @@ Approximate runtime:
 The exact import paths may depend on the installed repository version. A minimal workflow is conceptually:
 
 ```python
-from src.datasets import make_student_dvine
+import torch
+from src.datasets import make_student_dvine, split
 from src.train import train_lsvine
+from src.vine_utils import vine_metrics, empirical_pit
 
-# Generate a Student-t D-vine dataset
-X = make_student_dvine(
-    d=10,
-    n=3500,
-    seed=42
+# 1. Generate a Student-t D-vine dataset (S1)
+X = make_student_dvine(d=10, rho=0.4, nu=4, n=3500, seed=42)
+ds = split(X)
+
+# 2. Train LS-Vine
+model, vine, hist, mu, std = train_lsvine(
+    ds["X_train"], ds["X_val"], d_lat=5, seed=42
 )
 
-# Train LS-Vine
-model, history = train_lsvine(
-    X,
-    latent_dim=4,
-    seed=42
-)
+# 3. Evaluate on the test set
+Xts_t = torch.tensor(ds["X_test"], dtype=torch.float32).cuda()
+model.eval()
+with torch.no_grad():
+    Zts, Xhat = model(Xts_t)
+    Uts = empirical_pit(Zts.float().cpu().numpy()).astype(np.float64)
 
-print("Training completed.")
-print(history)
+ll, aic = vine_metrics(vine, Uts)
+print(f"Test LL : {ll:.4f}")
+print(f"Test AIC: {aic:.4f}")
 ```
 
 For a fully reproducible experiment, use the configuration and benchmark entry points supplied by the repository rather than changing individual parameters interactively.
