@@ -1,362 +1,555 @@
 # LS-Vine: Learning Vine-Compatible Latent Representations for Multivariate Dependence Modeling
 
-## Title
+**Mohsen Ben Hassine** (corresponding author) — <mohsenmbh851@gmail.com>  
+**Lamine Mili** — <lamine.mili@vt.edu>
+
+**GitHub repository:** https://github.com/mohsenbenhassine/ls-vine
+
+---
+
+## Table of Contents
+
+1. [Title](#title)
+2. [Description](#description)
+3. [Dataset Information](#dataset-information)
+4. [Code Information](#code-information)
+5. [Usage Instructions](#usage-instructions)
+6. [Requirements](#requirements)
+7. [Methodology](#methodology)
+8. [Citations](#citations)
+9. [License & Contribution Guidelines](#license--contribution-guidelines)
+
+---
+
+## 1. Title
 
 **LS-Vine: Learning Vine-Compatible Latent Representations for Multivariate Dependence Modeling**
 
-**Authors:**
-- Mohsen Ben Hassine (corresponding author) — [mohsenmbh851@gmail.com]
-- Lamine Mili — [lamine.mili@vt.edu]
-
-**Repository:** [https://github.com/mohsenbenhassine/ls-vine]
+LS-Vine is a latent representation learning framework designed to reorganize multivariate data into a geometry that is compatible with vine copula modeling.
 
 ---
 
-## Description
+## 2. Description
 
-LS-Vine is a latent representation learning framework that reorganizes multivariate data into a vine-compatible geometry. Unlike conventional autoencoders, which optimize for reconstruction fidelity, LS-Vine explicitly guides the latent space toward a structure that standard vine algorithms can decompose efficiently and accurately.
+LS-Vine is a latent representation learning framework that reorganizes multivariate data into a **vine-compatible geometry**. Unlike conventional autoencoders, which primarily optimize reconstruction fidelity, LS-Vine explicitly guides the latent space toward a structure that standard vine algorithms can decompose efficiently and accurately.
 
-This repository contains:
+The repository contains:
 
-- The complete implementation of LS-Vine (encoder-decoder architecture + differentiable dependence-aware training objective)
-- The benchmark code for 11 baseline methods:
-  - Linear baselines: PCA-Vine, ICA-Vine, FA-Vine, KPCA-Vine
-  - Neural baselines: AE-Vine, AE-Vine-Selected, VAE-Vine, WAE-Vine, InfoVAE-Vine
-  - Reference models: Vine-Direct, Vine-Truncated
-- The code to reproduce all 9 experimental scenarios (S1-S7, R1, R2)
-- The ablation study (A1-A5) and sensitivity analysis (latent dimension k)
+- The complete LS-Vine implementation, including the encoder-decoder architecture and differentiable dependence-aware training objective.
+- Benchmark implementations for **11 reference methods**:
+  - PCA-Vine
+  - ICA-Vine
+  - FA-Vine
+  - KPCA-Vine
+  - AE-Vine
+  - AE-Vine-Selected
+  - VAE-Vine
+  - WAE-Vine
+  - InfoVAE-Vine
+  - Vine-Direct
+  - Vine-Truncated
+- The experimental code required to reproduce the **9 experimental scenarios**: S1–S7, R1, and R2.
+- Ablation experiments A1–A5.
+- Latent-dimension sensitivity experiments.
 
-The main scientific contributions of this work are:
-1. A vine-compatible latent geometry framework combining encoder-decoder representation learning with a differentiable dependence-aware objective.
-2. A differentiable soft Kendall's tau reconstruction loss with pairwise subsampling.
-3. A rank-distribution matching loss L_v that preserves the distribution of pairwise dependence strengths in the latent space.
-4. A comprehensive empirical evaluation across 9 scenarios and 11 baselines.
+### Main scientific contributions
+
+1. **Vine-compatible latent geometry:** a framework combining encoder-decoder representation learning with a differentiable dependence-aware objective.
+2. **Differentiable soft Kendall's tau reconstruction loss:** a dependence-sensitive reconstruction component using pairwise subsampling.
+3. **Rank-dependence distribution matching loss \(L_v\):** preserves the distribution of pairwise dependence strengths in the latent space.
+4. **Comprehensive empirical evaluation:** experiments covering 9 scenarios and multiple dimensionality-reduction and vine-modeling baselines.
+
+> **Research scope.** The datasets used in this repository are simulated or empirically calibrated synthetic datasets. No real human or animal data are used.
 
 ---
 
-## Dataset Information
+## 3. Dataset Information
 
-This project uses simulated and empirically calibrated synthetic datasets. No real human or animal data is used. All datasets are generated reproducibly from fixed random seeds.
+### 3.1 Overview
 
-### Primary scenarios (complex non-linear dependencies)
+The experiments use simulated and empirically calibrated synthetic datasets.
 
-| Scenario | Description | d | n | Source |
-|----------|-------------|---|---|--------|
-| S1 | Student-t D-vine | 10 | 3500 | Simulated (pyvinecopulib) |
-| S2 | Student-t D-vine | 20 | 3500 | Simulated (pyvinecopulib) |
-| S3 | Mixed R-vine (heterogeneous families) | 12 | 3500 | Simulated (pyvinecopulib) |
-| R1 | S&P500-calibrated financial returns | 20 | 1500 | Empirically calibrated synthetic |
-| R2 | ERA5-calibrated meteorological data | 15 | 3000 | Empirically calibrated synthetic |
+| Scenario | Description | \(d\) | \(n\) | Source |
+|---|---|---:|---:|---|
+| S1 | Student-t D-vine | 10 | 3500 | Simulated (`pyvinecopulib`) |
+| S2 | Student-t D-vine | 20 | 3500 | Simulated (`pyvinecopulib`) |
+| S3 | Mixed R-vine (heterogeneous families) | 12 | 3500 | Simulated |
+| R1 | S&P500-calibrated financial returns | 20 | 1500 | Empirically calibrated |
+| R2 | ERA5-calibrated meteorological data | 15 | 3000 | Empirically calibrated |
 
-### Boundary conditions
+### 3.2 Boundary-condition scenarios
 
-| Scenario | Description | d | n |
-|----------|-------------|---|---|
+| Scenario | Description | \(d\) | \(n\) |
+|---|---|---:|---:|
 | S4 | Gaussian Factor Model | 15 | 1500 |
 | S5 | Noisy Low-Dim (30% noise) | 10 | 1500 |
 | S6 | Pure Gaussian Copula | 15 | 1500 |
 | S7 | Block Factor Student-t (no localized shocks) | 20 | 2000 |
 
-### Data format
+### 3.3 Data format
 
-Each dataset is saved as a CSV file with the following structure:
-- One row per sample
-- One column per variable, named x1, x2, ..., xd
+Datasets are stored as CSV files with:
 
-### Where to find the data
+- one row per observation;
+- one column per variable;
+- columns named `x1, x2, ..., xd`.
 
-- Generated automatically by running reproduce_datasets.py (see Usage Instructions)
-- Pre-generated copies are available in the data/ directory
-- Code repository: https://github.com/mohsenbenhassine/ls-vine
+The datasets can be reproduced using:
 
----
-
-## Code Information
-
-The codebase is organized as a modular Python package:
-ls-vine/
-├── README.md # This file
-├── LICENSE # MIT License
-├── requirements.txt # Python dependencies
-├── reproduce_datasets.py # Script to regenerate all datasets
-├── src/
-│ ├── init.py
-│ ├── config.py # Global hyperparameters
-│ ├── models.py # Neural network architectures
-│ ├── losses.py # L_rec, L_v, L_reg, soft Kendall's tau
-│ ├── vine_utils.py # Vine fitting and metrics (pyvinecopulib)
-│ ├── train.py # Training loops for all methods
-│ ├── datasets.py # Dataset generators (S1-S7, R1, R2)
-│ ├── benchmark.py # Main experiment runner
-│ ├── stats.py # Statistical tests (Friedman, Wilcoxon)
-│ └── figures.py # Figure generation
-├── notebooks/
-│ ├── benchmark.ipynb # Full benchmark
-│ ├── ablation.ipynb # Ablation study (A1-A5)
-│ └── sensitivity.ipynb # Sensitivity to latent dimension k
-├── data/ # Simulated datasets (CSV)
-└── results/
-├── results.csv # Raw benchmark results
-├── ablation.csv # Ablation results
-├── sensitivity_S1.csv # Sensitivity results for S1
-├── sensitivity_S2.csv # Sensitivity results for S2
-├── figures/ # All figures (PNG)
-└── tables/ # LaTeX tables
-
-
-### Key files explained
-
-| File | Purpose |
-|------|---------|
-| src/losses.py | Implements L_rec (MSE + soft Kendall's tau), L_v (rank-distribution matching), L_reg (latent regularization) |
-| src/train.py | Training loops for LS-Vine, AE-Vine, VAE-Vine, WAE-Vine, InfoVAE-Vine, and AE-Vine-Selected |
-| src/vine_utils.py | Wrappers around pyvinecopulib for fitting R-vines and computing LL / AIC / BIC |
-| src/benchmark.py | Main script: runs the full benchmark (9 scenarios x 12 methods x 10 seeds) |
-| reproduce_datasets.py | Regenerates all 9 datasets from fixed seeds |
-
----
-
-## Usage Instructions
-
-### Step 1: Clone the repository
-git clone [https://github.com/mohsenbenhassine/ls-vine].git
-cd ls-vine
-
-### Step 2: Install dependencies
-pip install -r requirements.txt
-
-### Step 3: Reproduce the datasets
+```bash
 python reproduce_datasets.py
+```
 
-This generates all 9 datasets in data/ directory as CSV files.
+The generation procedures are designed to reproduce the experimental scenarios using the specified random seeds and simulation/calibration procedures.
 
-### Step 4: Run the full benchmark
+---
+
+## 4. Code Information
+
+### 4.1 Repository structure
+
+```text
+ls-vine/
+├── README.md
+├── LICENSE
+├── requirements.txt
+├── reproduce_datasets.py
+├── src/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── models.py
+│   ├── losses.py
+│   ├── vine_utils.py
+│   ├── train.py
+│   ├── datasets.py
+│   ├── benchmark.py
+│   ├── stats.py
+│   └── figures.py
+├── notebooks/
+│   ├── benchmark.ipynb
+│   ├── ablation.ipynb
+│   └── sensitivity.ipynb
+├── data/
+└── results/
+    ├── results.csv
+    ├── ablation.csv
+    ├── sensitivity_S1.csv
+    ├── sensitivity_S2.csv
+    ├── figures/
+    └── tables/
+```
+
+### 4.2 Main components
+
+| Component | Purpose |
+|---|---|
+| `src/config.py` | Experiment configuration and hyperparameters |
+| `src/models.py` | Encoder, decoder, LS-Vine and related neural models |
+| `src/losses.py` | Reconstruction, dependence and regularization losses |
+| `src/vine_utils.py` | Vine-copula fitting, evaluation and utility functions |
+| `src/train.py` | Model training and validation procedures |
+| `src/datasets.py` | Dataset loading, preprocessing and splitting |
+| `src/benchmark.py` | Main benchmark experiments |
+| `src/stats.py` | Statistical tests and comparative analysis |
+| `src/figures.py` | Publication-oriented plots and figures |
+| `reproduce_datasets.py` | Reproduction of experimental datasets |
+
+The repository also includes Jupyter notebooks for the benchmark, ablation, and sensitivity analyses.
+
+---
+
+## 5. Usage Instructions
+
+### 5.1 Clone the repository
+
+```bash
+git clone https://github.com/mohsenbenhassine/ls-vine.git
+cd ls-vine
+```
+
+### 5.2 Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 5.3 Reproduce the datasets
+
+```bash
+python reproduce_datasets.py
+```
+
+### 5.4 Run the complete benchmark
+
+```bash
 python src/benchmark.py
+```
 
-This runs:
-- 9 scenarios x 12 methods x 10 seeds = 1080 experiments
-- Saves results to results/results.csv
-- Generates all figures in results/figures/
-- Exports LaTeX tables to results/tables/
+The complete benchmark comprises:
 
-Estimated runtime: ~4-6 hours on a T4 GPU.
+- 9 experimental scenarios;
+- 12 evaluated methods, including LS-Vine;
+- 10 random seeds;
+- **1080 experiments** in total.
 
-### Step 5: Run the ablation study
+Approximate runtime:
+
+```text
+~4–6 hours on an NVIDIA T4 GPU
+```
+
+Runtime depends on hardware, CUDA configuration, software versions, and implementation details.
+
+### 5.5 Run the ablation study
+
+```bash
 python src/ablation.py
+```
 
-This runs the ablation study on scenarios S1 and S3 (6 variants x 10 seeds).
-Estimated runtime: ~1-2 hours on a T4 GPU.
+The ablation study evaluates:
 
-### Step 6: Run the sensitivity analysis
+- S1 and S3;
+- 6 model/loss variants;
+- 10 random seeds.
+
+Approximate runtime:
+
+```text
+~1–2 hours on an NVIDIA T4 GPU
+```
+
+### 5.6 Run the latent-dimension sensitivity study
+
+```bash
 python src/sensitivity.py
+```
 
-This sweeps the latent dimension k on S1 (k=3,5,7,9) and S2 (k=5,8,12,16).
-Estimated runtime: ~1 hour on a T4 GPU.
+The sensitivity analysis evaluates:
 
-### Reproducing a single experiment (minimal example)
+- S1: \(k = 3, 5, 7, 9\)
+- S2: \(k = 5, 8, 12, 16\)
+
+Approximate runtime:
+
+```text
+~1 hour on an NVIDIA T4 GPU
+```
+
+### 5.7 Minimal Python example
+
+The exact import paths may depend on the installed repository version. A minimal workflow is conceptually:
 
 ```python
-import torch
-import numpy as np
-from src.datasets import make_student_dvine, split
+from src.datasets import make_student_dvine
 from src.train import train_lsvine
-from src.vine_utils import fit_vine, vine_metrics, empirical_pit
 
-# 1. Generate S1 data
-X = make_student_dvine(d=10, rho=0.4, nu=4, n=3500, seed=42)
-ds = split(X)
+# Generate a Student-t D-vine dataset
+X = make_student_dvine(
+    d=10,
+    n=3500,
+    seed=42
+)
 
-# 2. Train LS-Vine
-model, vine, hist, mu, std = train_lsvine(
-    ds["X_train"], ds["X_val"], d_lat=5, seed=42)
+# Train LS-Vine
+model, history = train_lsvine(
+    X,
+    latent_dim=4,
+    seed=42
+)
 
-# 3. Evaluate on test set
-Xts_t = torch.tensor(ds["X_test"], dtype=torch.float32).cuda()
-model.eval()
-with torch.no_grad():
-    Zts, Xhat = model(Xts_t)
-    Uts = empirical_pit(Zts.float().cpu().numpy()).astype(np.float64)
+print("Training completed.")
+print(history)
+```
 
-ll, aic = vine_metrics(vine, Uts)
-print(f"Test LL : {ll:.4f}")
-print(f"Test AIC: {aic:.2f}")
-Requirements
-The project was developed and tested with the following versions:
+For a fully reproducible experiment, use the configuration and benchmark entry points supplied by the repository rather than changing individual parameters interactively.
 
-Python >= 3.10
+---
 
-PyTorch == 2.11.0+cu128 (with CUDA support for GPU acceleration)
+## 6. Requirements
 
-pyvinecopulib == 1.0.0
+### 6.1 Software
 
-numpy == 2.1.3
+The reference environment uses:
 
-scipy == 1.16.3
+| Package | Version |
+|---|---|
+| Python | >= 3.10 |
+| PyTorch | 2.11.0+cu128 |
+| pyvinecopulib | 1.0.0 |
+| NumPy | 2.1.3 |
+| SciPy | 1.16.3 |
+| scikit-learn | 1.6.1 |
+| pandas | 2.2.3 |
+| matplotlib | 3.10.0 |
+| seaborn | 0.13.2 |
+| openpyxl | 3.1.5 |
 
-scikit-learn == 1.6.1
+Install the pinned project dependencies with:
 
-pandas == 2.2.3
-
-matplotlib == 3.10.0
-
-seaborn == 0.13.2
-
-openpyxl == 3.1.5
-
-Installing dependencies
-Install all dependencies in one command:
+```bash
 pip install -r requirements.txt
-pyvinecopulib==1.0.0
-torch==2.11.0+cu128
-numpy==2.1.3
-scipy==1.16.3
-scikit-learn==1.6.1
-pandas==2.2.3
-matplotlib==3.10.0
-seaborn==0.13.2
-openpyxl==3.1.5
-Hardware requirements
-Recommended: NVIDIA T4 GPU (or equivalent)
+```
 
-Minimum: 8 GB RAM, CPU-only (significantly slower)
+### 6.2 Hardware
 
-Methodology
-Methodology
-Data preprocessing
-All datasets are generated using the following protocol:
+**Recommended:**
 
-Rank transformation (Empirical PIT) — Each variable is mapped to the unit interval [0, 1] using the empirical cumulative distribution function:
+- NVIDIA T4 GPU
+- CUDA-compatible PyTorch installation
+- Sufficient disk space for datasets and experiment outputs
 
-u_ij = rank(x_ij) / (n + 1)
+**Minimum:**
 
-This guarantees that all values lie strictly in (0, 1), avoiding boundary issues in vine fitting.
+- 8 GB RAM
+- CPU-only execution is possible, but the complete benchmark will take substantially longer.
 
-Train/Validation/Test split:
+The reported runtime estimates are hardware-dependent and should be regarded as approximate.
 
-Primary scenarios (S1, S2, S3, S7): 2000 train / 500 validation / 1000 test
+---
 
-Calibrated scenarios (R1, R2, S4, S5, S6): 60% train / 20% validation / 20% test
+## 7. Methodology
 
-Latent dimension selection — Selected automatically via PCA explained variance threshold (90%) on the training set, computed separately for each (scenario, seed) pair.
+### 7.1 Preprocessing
 
-LS-Vine training
-The complete training objective is:
-L = L_rec + lambda(t) * L_v + gamma * L_reg
-where:
+#### Rank transformation
 
-L_rec = MSE + alpha * L_soft — reconstruction loss combining MSE with a soft Kendall's tau term that preserves local pairwise concordance.
+Each marginal variable is transformed to the empirical probability scale using the empirical probability integral transform (PIT):
 
-L_v — rank-distribution matching loss comparing the empirical quantile functions of |tau| between input X and latent Z (Wasserstein-1D).
-L_reg = ||Z_bar||^2 + lambda_var * sum (log s_j)^2 — latent regularization to prevent exploding variances and degenerate solutions.
+\[
+u_{ij} = \frac{\operatorname{rank}(x_{ij})}{n+1}.
+\]
 
-lambda(t) = lambda_max * (1 - exp(-t / tau_w)) — exponential warmup schedule for the vine loss weight.
+This maps the observed variables approximately to the unit interval while preserving their rank structure.
 
-The true vine likelihood L_vine is evaluated periodically on the validation set for early stopping and checkpoint selection. It is not used for gradient computation.
-Benchmark methods
-12 methods are benchmarked:
+### 7.2 Train/validation/test splitting
 
-Method	Type	Description
-LS-Vine	Proposed	Encoder-decoder + dependence-aware training
-AE-Vine-Selected	Ablation	Standard AE, checkpoint selected by validation AIC
-PCA-Vine	Linear	PCA + vine
-ICA-Vine	Linear	FastICA + vine
-FA-Vine	Linear	Factor Analysis + vine
-KPCA-Vine	Non-linear	Kernel PCA (RBF) + vine
-AE-Vine	Neural	Standard autoencoder + vine
-VAE-Vine	Neural	Variational autoencoder + vine
-WAE-Vine	Neural	Wasserstein autoencoder + vine
-InfoVAE-Vine	Neural	InfoVAE + vine
-Vine-Direct	Reference	Full-dimensional vine on raw pseudo-observations
-Vine-Truncated  Reference	Vine truncated at depth 1
-Evaluation metrics
-Log-likelihood (LL) — higher is better
+The default splits are:
 
-Out-of-Sample Penalized Likelihood (OS-PL) = -2 * l_test + 2p — lower is better
+- **S1, S2, S3, S7:** 2000 / 500 / 1000 observations for train / validation / test.
+- **R1, R2, S4, S5, S6:** 60% / 20% / 20% for train / validation / test.
 
-Dependence Reconstruction Error (DepRec) = ||tau(X) - tau(X_hat)||_F — lower is better
+### 7.3 Latent dimension selection
 
-Training time (seconds, measured on a T4 GPU)
+The latent dimension \(k\) is selected using PCA with a target threshold of **90% explained variance**, followed by the sensitivity analysis over explicitly specified candidate values.
 
-Statistical tests
-Friedman test (per scenario) — for global differences in rankings
+### 7.4 LS-Vine training objective
 
-One-sided Wilcoxon signed-rank tests with Holm-Bonferroni correction — for pairwise comparisons (LS-Vine vs each baseline)
+LS-Vine optimizes the following objective:
 
-Citations
-If you use this code or data, please cite
+\[
+L =
+L_{\mathrm{rec}}
++
+\lambda(t)L_v
++
+\gamma L_{\mathrm{reg}}.
+\]
+
+The reconstruction loss is:
+
+\[
+L_{\mathrm{rec}}
+=
+L_{\mathrm{MSE}}
++
+\alpha L_{\mathrm{soft}},
+\]
+
+where \(L_{\mathrm{soft}}\) is a differentiable soft Kendall's tau loss.
+
+The dependence-distribution matching term is:
+
+\[
+L_v =
+\text{Wasserstein}_{1D}
+\left(
+|\tau_X|,
+|\tau_Z|
+\right),
+\]
+
+where the empirical distributions of pairwise absolute Kendall's tau values are compared between the observed space and the latent space.
+
+The regularization term is:
+
+\[
+L_{\mathrm{reg}}
+=
+\|\bar Z\|^2
++
+\lambda_{\mathrm{var}}
+\sum_j(\log s_j)^2.
+\]
+
+The dependence-loss coefficient uses exponential warmup:
+
+\[
+\lambda(t)
+=
+\lambda_{\max}
+\left(
+1-\exp\left(-\frac{t}{\tau_w}\right)
+\right).
+\]
+
+### 7.5 Vine likelihood and early stopping
+
+The actual vine log-likelihood is evaluated periodically on the validation set for early stopping.
+
+Importantly:
+
+> **The vine likelihood is not used to calculate the gradient.**
+
+This separation prevents the non-differentiable vine fitting procedure from becoming part of the neural optimization objective.
+
+### 7.6 Benchmark methods
+
+The benchmark compares the following 12 methods:
+
+1. LS-Vine
+2. AE-Vine-Selected
+3. PCA-Vine
+4. ICA-Vine
+5. FA-Vine
+6. KPCA-Vine
+7. AE-Vine
+8. VAE-Vine
+9. WAE-Vine
+10. InfoVAE-Vine
+11. Vine-Direct
+12. Vine-Truncated
+
+### 7.7 Evaluation metrics
+
+The principal evaluation metrics are:
+
+| Metric | Interpretation |
+|---|---|
+| LL | Log-likelihood; larger values indicate a higher likelihood under the fitted model |
+| OS-PL | Out-of-sample predictive loss; smaller values are preferred |
+| DepRec | Dependence-recovery error; smaller values indicate closer dependence recovery |
+| Training time | Computational cost of model training |
+
+### 7.8 Statistical analysis
+
+The comparative analysis uses:
+
+- **Friedman tests** by scenario;
+- **one-sided Wilcoxon tests** for pairwise comparisons;
+- **Holm-Bonferroni correction** for multiple comparisons.
+
+Statistical conclusions should always be interpreted in the context of the corresponding scenario, sample size, random seeds, and multiple-testing correction.
+
+---
+
+## 8. Citations
+
+If you use this repository or LS-Vine in academic work, please cite the corresponding paper.
+
+### 8.1 Main LS-Vine paper
+
+```bibtex
 @article{benhassine2026lsvine,
   title   = {LS-Vine: Learning Vine-Compatible Latent Representations for Multivariate Dependence Modeling},
   author  = {Ben Hassine, Mohsen and Mili, Lamine},
   journal = {PeerJ Computer Science},
-  year    = {2026},
-
+  year    = {2026}
 }
-Related work by the authors
-Ben Hassine, M., Mili, L., & Karra, K. (2016). A Copula Statistic for Measuring Nonlinear Multivariate Dependence. arXiv preprint arXiv:1612.07269.
+```
 
-Ben Hassine, M., & Mili, L. (2025). Empirical copula-based data augmentation for mixed-type datasets: a robust approach for synthetic data generation. PeerJ Computer Science, 11, e3228. https://doi.org/10.7717/peerj-cs.3228
-Ben Hassine, M., Mili, L., & Karra, K. (2017). A Copula Statistic for Measuring Nonlinear Dependence with Application to Feature Selection in Machine Learning. International Journal of Advanced Computer Science and Applications, 8(7), 144-154. https://doi.org/10.14569/IJACSA.2017.080720
+### 8.2 Related work by the authors
 
-Key methodological references
-Dissmann, J., Brechmann, E. C., Czado, C., & Kurowicka, D. (2013). Selecting and estimating regular vine copulae and application to financial returns. Computational Statistics & Data Analysis, 59, 52-69.
+- Ben Hassine, M., Mili, L., & Karra, K. (2016). arXiv:1612.07269.
+- Ben Hassine, M., & Mili, L. (2025). *PeerJ Computer Science*, 11, e3228.
+- Ben Hassine, M., Mili, L., & Karra, K. (2017). *International Journal of Advanced Computer Science and Applications (IJACSA)*, 8(7), 144–154.
 
-Nagler, T., & Czado, C. (2016). Evading the curse of dimensionality in nonparametric density estimation with simplified vine copulas. Journal of Multivariate Analysis, 151, 69-89.
+### 8.3 Key methodological references
 
-Bedford, T., & Cooke, R. M. (2001). Probability density decomposition for conditionally dependent random variables modeled by vines. Annals of Mathematics and Artificial Intelligence, 32, 245-268.
-License & Contribution Guidelines
-License
-This project is licensed under the MIT License.
+- Dissmann, J., E. C. Brechmann, C. Czado, and D. Kurowicka (2013). “Selecting and estimating regular vine copulae and application to financial returns.” *Computational Statistics & Data Analysis*, 59, 52–69.
+- Nagler, T., & Czado, C. (2016). “Evading the curse of dimensionality in nonparametric density estimation with simplified vine copulas.” *Journal of Multivariate Analysis*, 151, 69–89.
+- Bedford, T., & Cooke, R. M. (2001). “Probability density decomposition for conditionally dependent random variables modeled by vines.” *Annals of Mathematics and Artificial Intelligence*, 32, 245–268.
+
+### 8.4 AI-assisted development and documentation
+
+ChatGPT (OpenAI; GPT-4 / GPT-5; https://chat.openai.com) was used for:
+
+- linguistic editing and grammatical correction of the manuscript;
+- review and suggestions for debugging Python code;
+- drafting and structuring project documentation, including this README;
+- assistance with formatting LaTeX tables and references.
+
+All scientific content, methodological decisions, experimental design, data generation, interpretation of results, and final conclusions remain the sole responsibility of the authors.
+
+---
+
+## 9. License & Contribution Guidelines
+
+### 9.1 License
+
+This project is released under the **MIT License**.
+
+```text
 MIT License
 
-Copyright (c) 2026 [Mohsen Ben Hassine, Lamine Mili]
+Copyright (c) 2026 Mohsen Ben Hassine, Lamine Mili
+```
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+See the `LICENSE` file for the complete license text.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+### 9.2 Contribution guidelines
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-Contact
-For scientific or technical questions, contact the corresponding author:
+Contributions are welcome when they improve reproducibility, correctness, documentation, or scientific usability of the project.
 
-Mohsen Ben Hassine
+Before submitting a contribution:
 
-Email: [mohsenmbh851@gmail.com]
+1. Clearly describe the proposed change.
+2. Preserve the reproducibility of existing experiments whenever possible.
+3. Report software and hardware versions for computational changes.
+4. Include tests or reproducibility checks for modifications affecting numerical results.
+5. Do not silently change datasets, random seeds, evaluation metrics, or benchmark definitions.
+6. Clearly distinguish methodological changes from implementation or documentation fixes.
 
+For substantial scientific changes, please describe:
+
+- the motivation;
+- the affected experimental scenarios;
+- the expected effect on results;
+- the relevant statistical evaluation;
+- any additional computational requirements.
+
+Issues and pull requests can be submitted through the GitHub repository:
+
+https://github.com/mohsenbenhassine/ls-vine
+
+---
+
+## Contact
+
+**Mohsen Ben Hassine**  
+Corresponding author  
+Email: <mohsenmbh851@gmail.com>  
 Affiliation: Faculté des Sciences de Tunis, Université de Tunis El Manar, Tunisia
 
-Acknowledgments
-The authors thank the Editor and reviewers of PeerJ Computer Science for their constructive feedback. 
-Use of Artificial Intelligence
-ChatGPT (OpenAI, GPT-4 / GPT-5, https://chat.openai.com) was used in the preparation of this manuscript and code for the following purposes:
+**Lamine Mili**  
+Email: <lamine.mili@vt.edu>
 
-Language editing and grammar correction of the manuscript text
+**Repository:** https://github.com/mohsenbenhassine/ls-vine
 
-Review and debugging suggestions for the Python implementation
+---
 
-Drafting and structuring of documentation (including this README file)
+## Reproducibility Note
 
-Assistance in formatting LaTeX tables and reference lists
+The experiments are intended to be reproducible from the repository using the provided dataset-generation, benchmark, ablation, and sensitivity-analysis scripts.
 
-All scientific content, methodological choices, experimental design, data generation, result interpretation, and final conclusions are the sole responsibility of the authors. No scientific claims were generated by the AI tools. All AI-suggested text and code were reviewed, verified, tested, and where necessary corrected by the authors before inclusion.
+For publication-level reproduction, record at minimum:
+https://github.com/mohsenbenhassine/ls-vine/blob/main/readm2.md
+- Python version;
+- package versions;
+- CUDA/PyTorch configuration;
+- GPU/CPU hardware;
+- random seeds;
+- dataset-generation configuration;
+- experiment configuration;
+- output files and commit/version of the repository.
 
-
-Last updated: [Septembre 2026]
-
-Version: 1.0.0
-
-
-
-
-
+Because neural-network training and vine fitting can be computationally sensitive to software and hardware environments, small numerical differences may occur across platforms even when the experimental protocol is unchanged.
